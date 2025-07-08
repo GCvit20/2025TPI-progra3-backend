@@ -7,7 +7,7 @@ const { database } = environments;
 //createPool es un conjunto de conecciones activas y reutilizables a la db (mantiene una coneccion abierta)
 const connection = mysql.createPool({
     host: database.host,
-    database: database.name,
+    database: database.database,
     user: database.user,
     password: database.password
 });
