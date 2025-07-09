@@ -10,7 +10,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
@@ -18,5 +17,14 @@
     "express": "^5.1.0",
     "mysql2": "^3.14.1",
     "nodemon": "^3.1.10"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GCvit20/2025TPI-progra3-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GCvit20/2025TPI-progra3-backend/issues"
+  },
+  "homepage": "https://github.com/GCvit20/2025TPI-progra3-backend#readme",
+  "description": ""
 }

@@ -1,9 +1,12 @@
-import Products from "../models/product.models.js";
+// Importamos modelos
+import Products from "../models/product.models.js"
 
+// GET
 export const getAllProducts = async (req, res) => {
     try {
-        // let sql = `SELECT * FROM juegos`;
-        /*let sql = `
+        
+        /* LOGICA EXPORTADA AL MODELO
+        let sql = `
             SELECT
                 j.id_juego,
                 j.nombre       AS juego_nombre,
@@ -23,7 +26,8 @@ export const getAllProducts = async (req, res) => {
         //al usar "[rows]" la desestructuracion extrae solamente las filas. Hace que el codigo sea mas legible y explicito.
         let [rows] = await connection.query(sql);*/
 
-        let [rows] = Products.selectAllProducts();
+        const [rows] = await Products.selectAllProducts();
+
         let juegosMap = {};
 
         rows.forEach(row => {
@@ -49,36 +53,32 @@ export const getAllProducts = async (req, res) => {
             }
             });
 
-        // let juegosConDlcs = [];
-        // Object.keys(juegosMap).forEach(key => {
-        // juegosConDlcs.push(juegosMap[key]);
-        // });
-
         let juegosConDlcs = Object.values(juegosMap);
-        
+
         //Devolvemos un status "200 OK" y la informacion que solicitamos a la db en formato JSON.
         res.status(200).json({
             payload: juegosConDlcs,
             message: juegosConDlcs.length === 0 ? "No se encontraron juegos." : "Juegos (con sus DLCs) encontrados."
         });
     } catch (error) {
-        console.log("Error al obtener productos: ", error);
+        console.log("Error al obtener juegos: ", error);
         res.status(500).json({
             error: "Error interno del servidor al obtener juegos."
         });
     }
 }
 
-export const getProductById = async (req, res) => {
+// GET by ID
+export const getProductByID = async (req, res) => {
     try{
         let { id } = req.params;
 
-        /*
+        /* LOGICA EXPORTADA AL MODELO
         let sql = `SELECT * FROM juegos where id_juego = ?`;
 
         let [rows] = await connection.query(sql, [id]);*/
 
-        let [rows] = await Products.selectProductById(id);
+        const [rows] = await Products.selectProductFromId(id);
 
         //Verificamos si se encontro el producto
         if(rows.length === 0) {
@@ -99,7 +99,8 @@ export const getProductById = async (req, res) => {
     }
 }
 
-export const newProduct = async (req, res) => {
+// POST
+export const createProduct = async (req, res) => {
     try{
         let { nombre , imagen , categoria , precio } = req.body;
 
@@ -109,11 +110,12 @@ export const newProduct = async (req, res) => {
             });
         }
 
-        /*Proteccion contra sql injection, usamos placeholders ? 
+        /* LOGICA EXPORTADA AL MODELO
+        //Proteccion contra sql injection, usamos placeholders ? 
         let sql = `INSERT INTO juegos (nombre, imagen, categoria, precio) VALUES (?, ?, ?, ?)`;
         let [rows] = await connection.query(sql, [nombre, imagen, categoria, precio]);*/
 
-        let [rows] = await Products.insertNewPorduct(nombre, imagen, categoria, precio);
+        const [rows] = await Products.insertNewProduct(nombre, imagen, categoria, nombre, precio);
 
         //Devolvemos informacion util del insert para devolver el ID del producto creado
         res.status(200).json({
@@ -130,7 +132,8 @@ export const newProduct = async (req, res) => {
     }
 }
 
-export const updateProduct = async (req, res) => {
+// PUT
+export const modifyProduct = async (req, res) => {
     try{
         let { id, nombre, imagen, categoria, precio } = req.body;
 
@@ -140,11 +143,12 @@ export const updateProduct = async (req, res) => {
             });
         }
 
-        /*proteccion contra sql injection, usamos placeholders ? 
+        /* LOGICA EXPORTADA AL MODELO
+        //proteccion contra sql injection, usamos placeholders ? 
         let sql = `UPDATE juegos SET nombre = ?, imagen = ?, precio = ?, categoria = ? WHERE id_juego = ?`;
         let [result] = await connection.query(sql, [nombre, imagen, precio, categoria, id]);*/
 
-        let [result] = await Products.updateProduct(nombre, imagen, precio, categoria, id);
+        const [result] = await Products.updateProduct(id, nombre, imagen, categoria, precio);
 
         //Devolvemos informacion util del insert para devolver el ID del producto creado
         res.status(200).json({
@@ -160,6 +164,7 @@ export const updateProduct = async (req, res) => {
     }
 }
 
+// DELETE
 export const removeProduct = async (req, res) => {
     try{
         let { id } = req.params;
@@ -170,11 +175,11 @@ export const removeProduct = async (req, res) => {
             })
         }
 
-
-        /*let sql = `DELETE FROM juegos where id_juego = ?`;
+        /* LOGICA EXPORTADA AL MODELO
+        let sql = `DELETE FROM juegos where id_juego = ?`;
         let [result] = await connection.query(sql, [id]);*/
 
-        let [result] = await Products.deleteProduct(id);
+        const [result] = await Products.deleteProduct(id);
 
         if(result.affectedRows === 0){
             return res.status(404).json({

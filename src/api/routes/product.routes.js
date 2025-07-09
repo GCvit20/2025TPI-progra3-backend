@@ -1,24 +1,23 @@
 import { Router } from "express";
 import { validateId } from "../middlewares/middlewares.js";
-import { removeProduct, getAllProducts, getProductById, newProduct, updateProduct } from "../controllers/product.controllers.js";
+import { createProduct, getAllProducts, getProductByID, modifyProduct, removeProduct } from "../controllers/product.controllers.js";
 
 const router = Router();
 
-/// GET products 
+// GET
 router.get("/", getAllProducts);
 
-// GET product by id
-router.get("/:id", validateId, getProductById);
+// GET by ID
+router.get("/:id", validateId, getProductByID);
 
-/// PUT ///
-router.put("/", updateProduct);
+// POST
+router.post("/", createProduct);
 
-/// POST ///
-router.post("/", newProduct);
-
+// PUT
+router.put("/", modifyProduct);
 
 /// DELETE ///
 router.delete("/:id", removeProduct);
 
-//Exportamos las rutas
+// Exportamos todas las rutas
 export default router;
