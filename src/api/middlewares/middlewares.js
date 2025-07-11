@@ -7,7 +7,7 @@ const loggerUrl = (req, rep, next) => {
 
 // Middlewares de rutas//
 // Middleware de ruta donde validaremos el ID
-const validateId = (req, rest, next) => {
+const validateId = (req, res, next) => {
     const { id } = req.params;
 
     if(!id || isNaN(id)) {

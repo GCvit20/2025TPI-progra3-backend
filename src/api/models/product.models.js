@@ -23,29 +23,84 @@ const selectAllProducts = async () => {
 }
 
 // GET by ID
-const selectProductFromId = async (id) => {
-    let sql = `SELECT * FROM juegos where id_juego = ?`;
+const selectProductFromId = async (tabla, id) => {
+    let tablaProd = tabla === "juegos" ? "juegos" : "dlcs";
+    let idCampo = tabla === "juegos" ? "id_juego" : "id_dlc";
+
+    let sql = `SELECT * FROM ${tablaProd} WHERE ${idCampo} = ?`;
 
     return await connection.query(sql, [id]);
 }
 
 // POST
-const insertNewProduct = async (nombre, imagen, categoria, precio) => {
-    //Proteccion contra sql injection, usamos placeholders ? 
-    let sql = `INSERT INTO juegos (nombre, imagen, categoria, precio) VALUES (?, ?, ?, ?)`;
-    return await connection.query(sql, [nombre, imagen, categoria, precio]);
+const insertNewProduct = async (tabla, data) => {
+    let sql = "";
+
+    //Proteccion contra sql injection, usamos placeholders ?
+    if (tabla === "juegos") 
+    {
+        let { nombre, imagen, categoria, precio } = data;
+
+        sql = ` INSERT INTO juegos (nombre, imagen, categoria, precio) VALUES (?, ?, ?, ?) `;
+        
+        return await connection.query(sql, [nombre, imagen, categoria, precio]);
+    } 
+    else if (tabla === "dlcs") 
+    {
+        let { nombre, imagen, precio, id_juego } = data;
+
+        // Validar que exista un juego con esa ID
+        let [[padre]] = await connection.query("SELECT 1 FROM juegos WHERE id_juego = ?", [id_juego]);
+
+        if (!padre) 
+        {
+        throw new Error(`No existe el juego con id ${id_juego}`);
+        }
+
+        sql = ` INSERT INTO dlcs (nombre, imagen, precio, id_juego) VALUES (?, ?, ?, ?) `;
+        
+        return await connection.query(sql, [nombre, imagen, precio, id_juego]);
+    }
 }
 
 // PUT
-const updateProduct = async (id, nombre, imagen, categoria, precio) => {
-    let sql = `UPDATE juegos SET nombre = ?, imagen = ?, precio = ?, categoria = ? WHERE id_juego = ?`;
+const updateProduct = async (tabla, id, data) => {
+    let sql = "";
 
-    return await connection.query(sql, [nombre, imagen, precio, categoria, id]);
+    if(tabla === "juegos")
+    {
+        let { nombre, imagen, categoria, precio} = data;
+
+        sql = ` UPDATE juegos SET nombre = ?, imagen = ?, categoria = ?, precio = ? WHERE id_juego = ? `;
+
+        return connection.query(sql, [nombre, imagen, categoria, precio, id]);
+    }
+    else 
+    { // dlcs
+        let { nombre, imagen, precio } = data;
+
+        sql = ` UPDATE dlcs SET nombre = ?, imagen = ?, precio = ? WHERE id_dlc = ? `;
+
+        return connection.query(sql, [nombre, imagen, precio, id]);
+    }
 }
 
 // DELETE
-const deleteProduct = async (id) => {
-    let sql = `DELETE FROM juegos where id_juego = ?`;
+const deleteProduct = async (tabla, id) => {
+    let tablaProd, idProd;
+
+    if(tabla === "juegos")
+    {
+        tablaProd = "juegos";
+        idProd = "id_juego";
+    }
+    else
+    {
+        tablaProd = "dlcs";
+        idProd = "id_dlc";
+    }
+
+    let sql = `DELETE FROM ${tablaProd} where ${idProd} = ?`;
 
     return await connection.query(sql, [id]);
 }

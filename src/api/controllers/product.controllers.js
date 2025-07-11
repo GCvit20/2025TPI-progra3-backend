@@ -71,14 +71,22 @@ export const getAllProducts = async (req, res) => {
 // GET by ID
 export const getProductByID = async (req, res) => {
     try{
-        let { id } = req.params;
+        let { tabla, id } = req.params;
 
         /* LOGICA EXPORTADA AL MODELO
         let sql = `SELECT * FROM juegos where id_juego = ?`;
 
         let [rows] = await connection.query(sql, [id]);*/
 
-        const [rows] = await Products.selectProductFromId(id);
+        if (tabla !== "juegos" && tabla !== "dlcs") {
+            return res.status(400).json({ error: "Tabla inválida. Debe ser 'juegos' o 'dlcs'." });
+        }
+
+        if (!tabla || !id) {
+            return res.status(400).json({ error: "Faltan parámetros en la solicitud." });
+        }
+        
+        const [rows] = await Products.selectProductFromId(tabla, id);
 
         //Verificamos si se encontro el producto
         if(rows.length === 0) {
@@ -102,12 +110,29 @@ export const getProductByID = async (req, res) => {
 // POST
 export const createProduct = async (req, res) => {
     try{
-        let { nombre , imagen , categoria , precio } = req.body;
+        let data = req.body;
+        let { tabla } = req.params;
 
-        if(!nombre || !imagen || !categoria || !precio) {
-            return res.status(400).json({
-                message: "Datos inválidos. Asegurate de mandar nombre, imagen, categoria y precio."
-            });
+        if (tabla === "juegos") 
+        {
+            const { nombre, imagen, categoria, precio } = data;
+            if (!nombre || !imagen || !categoria || !precio) 
+            {
+                return res.status(400).json({ message: "Faltan datos para crear juego." });
+            }
+        }
+        else if (tabla === "dlcs") 
+        {
+            const { nombre, imagen, precio, id_juego } = data;
+
+            if (!nombre || !imagen || !precio || !id_juego) 
+            {
+                return res.status(400).json({ message: "Faltan datos para crear DLC." });
+            }
+        } 
+        else 
+        {
+            return res.status(400).json({ message: "Tipo inválido. 'juegos' o 'dlcs' solamente." });
         }
 
         /* LOGICA EXPORTADA AL MODELO
@@ -115,7 +140,7 @@ export const createProduct = async (req, res) => {
         let sql = `INSERT INTO juegos (nombre, imagen, categoria, precio) VALUES (?, ?, ?, ?)`;
         let [rows] = await connection.query(sql, [nombre, imagen, categoria, precio]);*/
 
-        const [rows] = await Products.insertNewProduct(nombre, imagen, categoria, nombre, precio);
+        const [rows] = await Products.insertNewProduct(tabla, data);
 
         //Devolvemos informacion util del insert para devolver el ID del producto creado
         res.status(200).json({
@@ -135,12 +160,20 @@ export const createProduct = async (req, res) => {
 // PUT
 export const modifyProduct = async (req, res) => {
     try{
-        let { id, nombre, imagen, categoria, precio } = req.body;
+        let { tabla, id} = req.params;
+        let data = req.body;
 
-        if(!id || !nombre || !imagen || !categoria || !precio) {
-            return res.status(400).json({
-                message: "Faltan campos requeridos."
-            });
+        if (tabla === "juegos") {
+            const { nombre, imagen, categoria, precio } = data;
+            if (!nombre || !imagen || !categoria || !precio) {
+                return res.status(400).json({ message: "Faltan campos para juego." });
+            }
+            }
+            else if (tabla === "dlcs") {
+            const { nombre, imagen, precio } = data;
+            if (!nombre || !imagen || !precio) {
+                return res.status(400).json({ message: "Faltan campos para DLC." });
+            }
         }
 
         /* LOGICA EXPORTADA AL MODELO
@@ -148,7 +181,7 @@ export const modifyProduct = async (req, res) => {
         let sql = `UPDATE juegos SET nombre = ?, imagen = ?, precio = ?, categoria = ? WHERE id_juego = ?`;
         let [result] = await connection.query(sql, [nombre, imagen, precio, categoria, id]);*/
 
-        const [result] = await Products.updateProduct(id, nombre, imagen, categoria, precio);
+        const [result] = await Products.updateProduct(tabla, id, data);
 
         //Devolvemos informacion util del insert para devolver el ID del producto creado
         res.status(200).json({
@@ -167,7 +200,7 @@ export const modifyProduct = async (req, res) => {
 // DELETE
 export const removeProduct = async (req, res) => {
     try{
-        let { id } = req.params;
+        let { tabla, id } = req.params;
 
         if(!id)  {
             return res.status(400).json({
@@ -179,7 +212,7 @@ export const removeProduct = async (req, res) => {
         let sql = `DELETE FROM juegos where id_juego = ?`;
         let [result] = await connection.query(sql, [id]);*/
 
-        const [result] = await Products.deleteProduct(id);
+        const [result] = await Products.deleteProduct(tabla, id);
 
         if(result.affectedRows === 0){
             return res.status(404).json({
@@ -192,7 +225,7 @@ export const removeProduct = async (req, res) => {
         })
 
     } catch (error) {
-        console.error(`Error en DELETE /products/:id.`, error);
+        console.error(`Error en DELETE /products/${req.params.tabla}/${req.params.id}.`, error);
         res.status(500).json({
             error: `Error al eliminar producto con ID ${id}.`, error,
             error: error.message

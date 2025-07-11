@@ -8,16 +8,16 @@ const router = Router();
 router.get("/", getAllProducts);
 
 // GET by ID
-router.get("/:id", validateId, getProductByID);
+router.get("/:tabla/:id", validateId, getProductByID);
 
 // POST
-router.post("/", createProduct);
+router.post("/:tabla", createProduct);
 
 // PUT
-router.put("/", modifyProduct);
+router.put("/:tabla/:id", validateId, modifyProduct);
 
 /// DELETE ///
-router.delete("/:id", removeProduct);
+router.delete("/:tabla/:id", validateId, removeProduct);
 
 // Exportamos todas las rutas
 export default router;
